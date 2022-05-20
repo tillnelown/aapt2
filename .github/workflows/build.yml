@@ -31,17 +31,11 @@ jobs:
       - name: Prepare artifacts
         run: |
           cd output
-
-          # TODO: silently ignore extracting/overwriting existing files, because it exits with code != 0
-          for pkg in *.deb; do dpkg-deb -R $pkg extracted_packages || true; done
-
-          cd extracted_packages/data/data/com.termux/files/usr/
-          rm -r include/ share/ lib/pkgconfig/ lib/cmake/
-
-          find bin ! -name 'aapt2' -mindepth 1 -exec rm -f {} +
+          mkdir extracted_packages
+          for pkg in *.deb; do ar p $pkg data.tar.xz | tar xJf - --strip-components=6 /data/data/com.termux/files/usr/bin/appt2\*.jar; done
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: aapt-${{ matrix.target_arch }}-${{ github.sha }}
-          path: output/extracted_packages/data/data/com.termux/files/usr/
+          path: output/extracted_packages/
